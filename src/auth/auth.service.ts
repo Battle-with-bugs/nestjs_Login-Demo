@@ -1,7 +1,7 @@
-import { Injectable, HttpStatus, HttpException } from '@nestjs/common';
+import { Injectable, HttpStatus, HttpException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
-import RegisterDto from './auth.dto';
+import {RegisterDto, LoginDto} from './auth.dto';
 import PostgresErrorCode from 'src/database/postgresErrorCodes.enum';
 
 @Injectable()
@@ -10,15 +10,31 @@ export class AuthService {
     private readonly usersService: UsersService
   ) { }
 
-  public async register(registrationData: RegisterDto) {
+  public async login(dataLogin: LoginDto) {
+    console.log(dataLogin);
+      const user = await this.usersService.getByAccount(dataLogin.accountName);
+      const isPasswordMatching = await bcrypt.compare(
+        dataLogin.password,
+        user.password
+      );
+      if (!isPasswordMatching) {
+        throw new UnauthorizedException();
+      }
+      user.password = undefined;
+      return user;
+  }
+
+  public async register(registrationData: RegisterDto) {  
+    // hash password
     const saltOrRounds = 10;
     const salt = await bcrypt.genSalt(saltOrRounds);
     const userPassword = registrationData.password
     const hashPassword = await bcrypt.hash(userPassword, salt);
     registrationData.password = hashPassword
-    const checkAccount = await this.usersService.getByAccount(registrationData.accountName) ? true : false;
-    const checkEmail = await this.usersService.getByEmail(registrationData.email) ? true : false;
-    console.log(checkAccount, checkEmail);
+
+    const checkAccount = await this.usersService.getByAccount(registrationData.accountName) == null? false : true;
+    const checkEmail = await this.usersService.getByEmail(registrationData.email) ==null ? false : true;
+    
     if (checkAccount === false && checkEmail === false) {
       const dataUser = await this.usersService.create(registrationData);
       return dataUser
@@ -43,7 +59,6 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY
       )
     }
-
   }
 
 }

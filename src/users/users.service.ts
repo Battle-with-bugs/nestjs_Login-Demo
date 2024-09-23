@@ -22,6 +22,8 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { accountName: account }
     });
+    console.log(user);
+    
     return user;
 
   }

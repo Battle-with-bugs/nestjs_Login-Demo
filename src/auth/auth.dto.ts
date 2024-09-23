@@ -4,4 +4,9 @@ export class RegisterDto {
   password: string;
 }
  
-export default RegisterDto;
+
+export class LoginDto {
+  accountName: string;
+  password: string;
+}
+ 

@@ -2,7 +2,7 @@
 import { Body, Controller, Post, HttpCode, HttpStatus, HttpException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from 'src/users/users.service';
-import RegisterDto from './auth.dto';
+import {RegisterDto, LoginDto} from './auth.dto';
 import * as bcrypt from 'bcrypt';
 import PostgresErrorCode from 'src/database/postgresErrorCodes.enum';
 
@@ -19,7 +19,7 @@ export class AuthController {
     }
 
     @Post('login')
-    async login() {
-
+    async login(@Body() dataLogin: LoginDto) {
+        return await this.authService.login(dataLogin)
     }
 }
